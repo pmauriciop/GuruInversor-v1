@@ -339,3 +339,62 @@ async def list_database_tables():
             status_code=500,
             detail=f"Error listando tablas: {str(e)}"
         )
+
+@router.post("/database/fix-types")
+async def fix_database_types():
+    """
+    Corregir tipos de datos en PostgreSQL para compatibilidad.
+    ⚠️ Solo usar cuando hay problemas de tipos de datos después de migración.
+    """
+    try:
+        from database.connection import get_database
+        from sqlalchemy import text
+        
+        db = get_database()
+        
+        if db.db_type != "postgresql":
+            return {
+                "status": "skipped",
+                "message": "Solo necesario para PostgreSQL",
+                "database_type": db.db_type
+            }
+        
+        # Corregir tipo de columna active en stocks
+        with db.session_scope() as session:
+            # Verificar tipo actual de la columna
+            result = session.execute(text("""
+                SELECT data_type 
+                FROM information_schema.columns 
+                WHERE table_name = 'stocks' AND column_name = 'active'
+            """)).fetchone()
+            
+            current_type = result[0] if result else "unknown"
+            
+            fixes_applied = []
+            
+            if current_type != "boolean":
+                # Convertir valores existentes y cambiar tipo
+                session.execute(text("""
+                    ALTER TABLE stocks 
+                    ALTER COLUMN active TYPE boolean 
+                    USING CASE 
+                        WHEN active = 1 OR active = true THEN true 
+                        ELSE false 
+                    END
+                """))
+                fixes_applied.append(f"stocks.active: {current_type} → boolean")
+            
+            session.commit()
+        
+        return {
+            "status": "success",
+            "message": "Tipos de datos corregidos",
+            "fixes_applied": fixes_applied,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error corrigiendo tipos de datos: {str(e)}"
+        )
