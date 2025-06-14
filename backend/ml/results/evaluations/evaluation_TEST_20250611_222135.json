@@ -1,0 +1,103 @@
+{
+  "metadata": {
+    "ticker": "TEST",
+    "evaluation_date": "2025-06-11T22:21:35.248445",
+    "test_samples": 50,
+    "model_type": "LSTM_Basic",
+    "config": {
+      "rolling_window_days": 30,
+      "min_test_samples": 100,
+      "max_test_samples": 1000,
+      "direction_threshold": 0.02,
+      "significant_move_threshold": 0.05,
+      "transaction_cost": 0.001,
+      "initial_capital": 10000.0,
+      "max_position_size": 0.1,
+      "risk_free_rate": 0.02,
+      "confidence_level": 0.95,
+      "save_detailed_results": true,
+      "generate_plots": false,
+      "export_format": "json"
+    }
+  },
+  "basic_metrics": {
+    "regression_mse": 0.3404735841784614,
+    "regression_rmse": 0.5835011432537741,
+    "regression_mae": 0.5171429263276369,
+    "regression_mape": 110.86443252083986,
+    "regression_r2": -3.6080565473720796,
+    "regression_mean_error": -0.5154858898317987,
+    "regression_std_error": 0.27340058808053064,
+    "directional_directional_accuracy": 0.5151515151515151,
+    "directional_up_accuracy": 0.5102040816326531,
+    "directional_down_accuracy": 0.52,
+    "directional_total_up_days": "49",
+    "directional_total_down_days": "50",
+    "mean_relative_error": 1.1086443252083986,
+    "median_relative_error": 1.042999517477929,
+    "prediction_range": 0.1583508849143982,
+    "actual_range": 0.9458658910206966,
+    "prediction_variance": 0.0033449199981987476,
+    "actual_variance": 0.07388658986240729,
+    "correlation_coefficient": 0.07899160673589922
+  },
+  "financial_metrics": {
+    "simulated_total_return": -0.001,
+    "simulated_sharpe_ratio": -14.203025998774566,
+    "simulated_win_rate": 0.0,
+    "simulated_total_trades": 1,
+    "simulated_final_value": 9990.0,
+    "strategy_volatility": 9.999489834961274e-05,
+    "bullish_rmse": 0.7026438845923162,
+    "bullish_mae": 0.6737813039215917,
+    "bullish_samples": 48,
+    "bearish_rmse": 0.42828937283092877,
+    "bearish_mae": 0.35995671599759455,
+    "bearish_samples": 49,
+    "sideways_rmse": 0.6947813933890408,
+    "sideways_mae": 0.5529106024067778,
+    "sideways_samples": 2
+  },
+  "directional_analysis": {
+    "directional_accuracy": 0.5151515151515151,
+    "up_accuracy": 0.5102040816326531,
+    "down_accuracy": 0.52,
+    "total_up_days": "49",
+    "total_down_days": "50",
+    "directional_accuracy_1pct": 0.5051546391752577,
+    "directional_accuracy_2pct": 0.5052631578947369,
+    "directional_accuracy_5pct": 0.5164835164835165,
+    "mean_direction_error": -0.0018513239092665253,
+    "std_direction_error": 0.37425478768690795,
+    "direction_error_skewness": 0.005634445755112378,
+    "large_error_ratio": 0.9090909090909091
+  },
+  "risk_metrics": {
+    "value_at_risk_95": 0.8944794447520705,
+    "value_at_risk_99": 0.974022131418331,
+    "conditional_var_95": 0.9393771532106582,
+    "downside_deviation": 0.2642225499464003,
+    "error_skewness": 0.1594966939067145,
+    "error_kurtosis": -1.1096131910259488,
+    "max_absolute_error": 1.012109114372861,
+    "relative_var_95": 1.7970344832513647,
+    "price_volatility": 0.2982694441073684,
+    "prediction_volatility": 0.38268858194351196,
+    "volatility_ratio": 1.2830297890177282
+  },
+  "backtest_results": {},
+  "stability_metrics": {
+    "rmse_stability": 0.9194643258755731,
+    "accuracy_stability": 0.8134732089824279,
+    "performance_trend": -0.52399624732805,
+    "consistency_score": 0.9935140051933241
+  },
+  "overall_score": {
+    "accuracy_score": 0.696114566648002,
+    "directional_score": 0.5151515151515151,
+    "risk_score": 0.9904670572043753,
+    "financial_score": 0.3996,
+    "overall_score": 0.6504413885555546,
+    "grade": "B"
+  }
+}
