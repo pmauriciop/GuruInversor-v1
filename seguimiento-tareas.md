@@ -302,9 +302,9 @@
   - **Fecha Completado:** 14 de junio de 2025
   - **Descripción:** prepare_deployment.py + checklist automático
 
-- [ ] **DEPLOY-006** - Subir código a GitHub
-  - **Estado:** 🟡 Pendiente
-  - **Estimado:** 15 min
+- [x] **DEPLOY-006** - Subir código a GitHub
+  - **Estado:** ✅ Completado
+  - **Fecha Completado:** 14 de junio de 2025
   - **Descripción:** Repository público con código limpio
 
 - [ ] **DEPLOY-007** - Deploy backend en Railway
