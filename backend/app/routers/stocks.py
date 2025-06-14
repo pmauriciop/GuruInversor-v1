@@ -84,10 +84,10 @@ async def list_stocks():
     """
     try:
         db = get_database()
-        
-        # Obtener lista de tickers de la base de datos
+          # Obtener lista de tickers de la base de datos
         with db.session_scope() as session:
-            stocks_from_db = session.query(Stock).filter(Stock.active == True).all()
+            # Usar comparación compatible con tanto boolean como integer
+            stocks_from_db = session.query(Stock).filter(Stock.active != 0).all()
             tickers_list = [stock.ticker for stock in stocks_from_db]
         
         # Si no hay tickers en la base de datos, usar lista por defecto
