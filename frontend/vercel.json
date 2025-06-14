@@ -14,9 +14,8 @@
       "src": "/(.*)",
       "dest": "/index.html"
     }
-  ],
-  "env": {
-    "VITE_API_URL": "https://guruzinversor-backend.railway.app"
+  ],  "env": {
+    "VITE_API_URL": "https://guruinversor-v1-production.up.railway.app"
   },
   "build": {
     "env": {
