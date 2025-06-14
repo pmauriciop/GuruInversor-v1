@@ -269,3 +269,73 @@ async def get_database_info():
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error obteniendo información de base de datos: {str(e)}")
+
+@router.post("/database/init")
+async def init_database_tables():
+    """
+    Forzar inicialización de tablas de base de datos.
+    ⚠️ Solo usar en ambiente de desarrollo o configuración inicial.
+    """
+    try:
+        from database.connection import get_database
+        from database.models import Base
+        
+        db = get_database()
+        
+        # Crear todas las tablas
+        Base.metadata.create_all(bind=db.engine)
+        
+        # Verificar qué tablas se crearon
+        from sqlalchemy import inspect
+        inspector = inspect(db.engine)
+        tables = inspector.get_table_names()
+        
+        return {
+            "status": "success",
+            "message": "Tablas inicializadas correctamente",
+            "tables_created": tables,
+            "database_type": db.db_type,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error inicializando base de datos: {str(e)}"
+        )
+
+@router.get("/database/tables")
+async def list_database_tables():
+    """
+    Listar todas las tablas existentes en la base de datos.
+    """
+    try:
+        from database.connection import get_database
+        from sqlalchemy import inspect
+        
+        db = get_database()
+        inspector = inspect(db.engine)
+        tables = inspector.get_table_names()
+        
+        # Obtener información de cada tabla
+        table_info = {}
+        for table_name in tables:
+            columns = inspector.get_columns(table_name)
+            table_info[table_name] = {
+                "columns": [col['name'] for col in columns],
+                "column_details": columns
+            }
+        
+        return {
+            "database_type": db.db_type,
+            "total_tables": len(tables),
+            "tables": tables,
+            "table_details": table_info,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error listando tablas: {str(e)}"
+        )
