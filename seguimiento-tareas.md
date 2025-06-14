@@ -307,15 +307,15 @@
   - **Fecha Completado:** 14 de junio de 2025
   - **Descripción:** Repository público con código limpio
 
-- [ ] **DEPLOY-007** - Deploy backend en Railway
-  - **Estado:** 🟡 Pendiente
-  - **Estimado:** 30 min
+- [x] **DEPLOY-007** - Deploy backend en Railway
+  - **Estado:** ✅ Completado
+  - **Fecha Completado:** 14 de junio de 2025
   - **Descripción:** App Railway + BD PostgreSQL + variables entorno
 
-- [ ] **DEPLOY-008** - Migrar datos a PostgreSQL
-  - **Estado:** 🟡 Pendiente
-  - **Estimado:** 15 min
-  - **Descripción:** Ejecutar migrate_to_postgres.py
+- [x] **DEPLOY-008** - Migrar datos a PostgreSQL
+  - **Estado:** ✅ Completado
+  - **Fecha Completado:** 14 de junio de 2025
+  - **Descripción:** 5 tickers + 307 registros históricos migrados exitosamente
 
 - [ ] **DEPLOY-009** - Deploy frontend en Vercel
   - **Estado:** 🟡 Pendiente
