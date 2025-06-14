@@ -15,6 +15,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.pool import StaticPool
 from .models import Base
+from .config import engine, SessionLocal
 
 # Configurar logging
 logger = logging.getLogger(__name__)
@@ -24,53 +25,29 @@ class Database:
     """
     Clase para manejar la conexión y configuración de la base de datos.
     
-    Proporciona métodos para inicializar la base de datos, crear sesiones
-    y manejar transacciones de forma segura.
+    Usa la configuración de config.py que soporta tanto PostgreSQL como SQLite.
     """
     
-    def __init__(self, database_url: Optional[str] = None, echo: bool = False):
+    def __init__(self):
         """
-        Inicializa la conexión a la base de datos.
-        
-        Args:
-            database_url: URL de conexión a la base de datos
-            echo: Si imprimir las consultas SQL (para debug)
+        Inicializa la conexión usando la configuración de config.py.
         """
-        # Configurar URL de base de datos
-        if database_url is None:
-            # Usar variable de entorno o default
-            db_path = os.getenv('DATABASE_PATH', 'data/guru_inversor.db')
-            
-            # Crear directorio si no existe
-            db_dir = os.path.dirname(db_path)
-            if db_dir and not os.path.exists(db_dir):
-                os.makedirs(db_dir, exist_ok=True)
-            
-            database_url = f"sqlite:///{db_path}"
+        # Usar el engine y SessionLocal de config.py
+        self.engine = engine
+        self.SessionLocal = SessionLocal
         
-        # Configurar engine
-        self.database_url = database_url
-        self.engine = create_engine(
-            database_url,
-            echo=echo,
-            poolclass=StaticPool,
-            connect_args={
-                "check_same_thread": False,  # Permitir múltiples threads
-                "timeout": 30  # Timeout de 30 segundos
-            }
-        )
+        # Determinar tipo de base de datos
+        database_url = os.getenv("DATABASE_URL")
+        if database_url:
+            self.database_url = database_url
+            self.db_type = "postgresql"
+        else:
+            self.database_url = "sqlite:///./data/guru_inversor.db"
+            self.db_type = "sqlite"
+            # Solo configurar eventos SQLite si estamos usando SQLite
+            self._setup_sqlite_events()
         
-        # Configurar SessionMaker
-        self.SessionLocal = sessionmaker(
-            autocommit=False,
-            autoflush=False,
-            bind=self.engine
-        )
-        
-        # Configurar eventos SQLite
-        self._setup_sqlite_events()
-        
-        logger.info(f"Base de datos configurada: {database_url}")
+        logger.info(f"Base de datos configurada: {self.db_type}")
     
     def _setup_sqlite_events(self):
         """Configura eventos específicos para SQLite."""
@@ -228,13 +205,9 @@ class Database:
 _database_instance: Optional[Database] = None
 
 
-def get_database(database_url: Optional[str] = None, echo: bool = False) -> Database:
+def get_database() -> Database:
     """
     Obtiene la instancia global de base de datos.
-    
-    Args:
-        database_url: URL de conexión (solo usado en primera llamada)
-        echo: Si imprimir consultas SQL (solo usado en primera llamada)
     
     Returns:
         Database: Instancia de base de datos
@@ -242,7 +215,7 @@ def get_database(database_url: Optional[str] = None, echo: bool = False) -> Data
     global _database_instance
     
     if _database_instance is None:
-        _database_instance = Database(database_url=database_url, echo=echo)
+        _database_instance = Database()
     
     return _database_instance
 
@@ -259,13 +232,12 @@ def get_db_session() -> Generator[Session, None, None]:
         yield session
 
 
-def init_database(database_url: Optional[str] = None, drop_existing: bool = False):
+def init_database(drop_existing: bool = False):
     """
     Función de conveniencia para inicializar la base de datos.
     
     Args:
-        database_url: URL de conexión a la base de datos
         drop_existing: Si eliminar tablas existentes
     """
-    database = get_database(database_url=database_url)
+    database = get_database()
     database.init_db(drop_existing=drop_existing)
