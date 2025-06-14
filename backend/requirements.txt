@@ -28,6 +28,9 @@ psycopg2-binary>=2.9.0  # PostgreSQL driver for production
 # Environment Management
 python-dotenv>=1.0.0
 
+# Authentication
+PyJWT>=2.8.0
+
 # Development Tools
 pytest>=7.4.0
 pytest-asyncio>=0.21.0
