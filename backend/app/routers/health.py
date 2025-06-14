@@ -62,9 +62,16 @@ async def get_system_health():
             database = get_database()
             with database.session_scope() as session:
                 session.execute(text("SELECT 1"))
+            
+            # Obtener información de la base de datos
+            db_url = os.getenv("DATABASE_URL", "No configurada")
+            db_type = "PostgreSQL" if db_url and db_url != "No configurada" else "SQLite"
+            
             components["database"] = {
                 "status": "healthy",
-                "message": "Base de datos conectada correctamente"
+                "message": "Base de datos conectada correctamente",
+                "type": db_type,
+                "url_configured": db_url != "No configurada"
             }
         except Exception as e:
             components["database"] = {
@@ -213,3 +220,52 @@ async def get_system_info():
         api_version="1.0.0",
         uptime=str(datetime.now())  # En producción, usar tiempo real de uptime
     )
+
+@router.get("/database/info", response_model=dict)
+async def get_database_info():
+    """
+    Obtener información detallada sobre la configuración de base de datos.
+    
+    Returns:
+        dict: Información de la base de datos
+    """
+    try:
+        # Variables de entorno
+        database_url = os.getenv("DATABASE_URL")
+        environment = os.getenv("ENVIRONMENT", "development")
+        
+        # Información de la base de datos
+        database = get_database()
+        db_info = {
+            "environment": environment,
+            "database_url_configured": database_url is not None,
+            "database_type": "PostgreSQL" if database_url else "SQLite",
+            "engine_url": str(database.engine.url).replace(database.engine.url.password or "", "***") if hasattr(database.engine.url, 'password') else str(database.engine.url)
+        }
+        
+        # Probar conexión y obtener información de tablas
+        try:
+            from sqlalchemy import inspect
+            with database.session_scope() as session:
+                session.execute(text("SELECT 1"))
+                
+                # Obtener lista de tablas
+                inspector = inspect(database.engine)
+                tables = inspector.get_table_names()
+                db_info["connection_status"] = "healthy"
+                db_info["tables"] = tables
+                db_info["stocks_table_exists"] = "stocks" in tables
+                
+                if "stocks" in tables:
+                    # Contar registros en stocks
+                    result = session.execute(text("SELECT COUNT(*) FROM stocks"))
+                    db_info["stocks_count"] = result.scalar()
+                
+        except Exception as e:
+            db_info["connection_status"] = "error"
+            db_info["connection_error"] = str(e)
+        
+        return db_info
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error obteniendo información de base de datos: {str(e)}")
