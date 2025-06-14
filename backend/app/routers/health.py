@@ -366,8 +366,7 @@ async def fix_database_types():
                 SELECT data_type 
                 FROM information_schema.columns 
                 WHERE table_name = 'stocks' AND column_name = 'active'
-            """)).fetchone()
-            
+            """)).fetchone()            
             current_type = result[0] if result else "unknown"
             
             fixes_applied = []
@@ -378,7 +377,7 @@ async def fix_database_types():
                     ALTER TABLE stocks 
                     ALTER COLUMN active TYPE boolean 
                     USING CASE 
-                        WHEN active = 1 OR active = true THEN true 
+                        WHEN active::text = '1' OR active::text = 'true' THEN true 
                         ELSE false 
                     END
                 """))
