@@ -21,8 +21,8 @@ let API_BASE_URL = import.meta.env.VITE_API_URL ||
     ? 'https://guruinversor-v1-production.up.railway.app'
     : 'http://localhost:8000');
 
-// Forzar HTTPS si estamos en producción (fallback adicional)
-if (window.location.protocol === 'https:' && API_BASE_URL.startsWith('http:')) {
+// Forzar HTTPS si estamos en producción (ANTES de crear instancia Axios)
+if (typeof window !== 'undefined' && window.location.protocol === 'https:' && API_BASE_URL.startsWith('http:')) {
   API_BASE_URL = API_BASE_URL.replace('http:', 'https:');
   console.warn('Forced HTTPS for API URL:', API_BASE_URL);
 }
@@ -32,9 +32,9 @@ console.log('API_BASE_URL:', API_BASE_URL);
 console.log('Environment MODE:', import.meta.env.MODE);
 console.log('VITE_API_URL from env:', import.meta.env.VITE_API_URL);
 console.log('Is Production:', import.meta.env.PROD);
-console.log('Window protocol:', window.location.protocol);
+console.log('Window protocol:', typeof window !== 'undefined' ? window.location.protocol : 'server');
 
-// Configuración base de Axios
+// Configuración base de Axios (DESPUÉS de la corrección)
 const api = axios.create({
   baseURL: `${API_BASE_URL}/api`,
   timeout: 30000,
@@ -42,6 +42,9 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+// Debug adicional para verificar la instancia de Axios
+console.log('Axios baseURL configurado:', api.defaults.baseURL);
 
 // Interceptor para añadir token de autenticación
 api.interceptors.request.use(
