@@ -15,7 +15,12 @@ import type {
 } from '../types/api';
 
 // API Configuration
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://guruinversor-v1-production.up.railway.app';
+
+// Debug para verificar la URL en producción
+console.log('API_BASE_URL:', API_BASE_URL);
+console.log('Environment:', import.meta.env.MODE);
+console.log('VITE_API_URL from env:', import.meta.env.VITE_API_URL);
 
 // Configuración base de Axios
 const api = axios.create({

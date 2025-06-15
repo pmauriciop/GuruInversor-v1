@@ -7,5 +7,10 @@
   ],
   "env": {
     "VITE_API_URL": "https://guruinversor-v1-production.up.railway.app"
+  },
+  "build": {
+    "env": {
+      "VITE_API_URL": "https://guruinversor-v1-production.up.railway.app"
+    }
   }
 }
