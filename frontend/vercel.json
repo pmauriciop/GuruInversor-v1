@@ -1,25 +1,11 @@
 {
-  "version": 2,
-  "builds": [
+  "rewrites": [
     {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
-  ],  "env": {
+  "env": {
     "VITE_API_URL": "https://guruinversor-v1-production.up.railway.app"
-  },
-  "build": {
-    "env": {
-      "VITE_API_URL": "https://guruzinversor-backend.railway.app"
-    }
   }
 }
