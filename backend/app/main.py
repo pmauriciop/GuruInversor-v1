@@ -10,7 +10,7 @@ del sistema de predicción de acciones.
 import os
 import sys
 from pathlib import Path
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import uvicorn
@@ -62,6 +62,19 @@ app_info = {
 # Crear instancia de FastAPI
 app = FastAPI(**app_info)
 
+# Configurar para forzar HTTPS en producción
+@app.middleware("http")
+async def force_https_middleware(request, call_next):
+    """Middleware para forzar HTTPS en headers y URLs generadas."""
+    # Detectar si estamos detrás de un proxy HTTPS (Railway)
+    forwarded_proto = request.headers.get("x-forwarded-proto")
+    if forwarded_proto == "https":
+        # Forzar el esquema a HTTPS para URL generation
+        request.scope["scheme"] = "https"
+    
+    response = await call_next(request)
+    return response
+
 # Configurar middlewares
 app.add_middleware(
     CORSMiddleware,
@@ -70,6 +83,20 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Configurar trusted hosts para Railway
+@app.middleware("http")
+async def add_security_headers(request, call_next):
+    """Middleware para añadir headers de seguridad."""
+    response = await call_next(request)
+    
+    # Forzar HTTPS en Location headers si estamos detrás de proxy
+    if "location" in response.headers:
+        location = response.headers["location"]
+        if location.startswith("http://") and request.headers.get("x-forwarded-proto") == "https":
+            response.headers["location"] = location.replace("http://", "https://", 1)
+    
+    return response
 
 # Añadir middleware de métricas
 app.add_middleware(MetricsMiddleware)

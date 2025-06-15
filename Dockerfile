@@ -35,5 +35,5 @@ EXPOSE $PORT
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:$PORT/api/health || exit 1
 
-# Run the application
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# Run the application with proxy headers support
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --forwarded-allow-ips='*' --proxy-headers"]
