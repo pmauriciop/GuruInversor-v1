@@ -14,30 +14,12 @@ import type {
   HealthCheck
 } from '../types/api';
 
-// API Configuration
-// Forzar HTTPS en producción para resolver Mixed Content
-let API_BASE_URL = import.meta.env.VITE_API_URL || 
-  (import.meta.env.MODE === 'production' 
-    ? 'https://guruinversor-v1-production.up.railway.app'
-    : 'http://localhost:8000');
+// API Configuration - HARDCODED HTTPS para debugging
+const API_BASE_URL = 'https://guruinversor-v1-production.up.railway.app';
 
-// Forzar HTTPS si estamos en producción (ANTES de crear instancia Axios)
-if (typeof window !== 'undefined' && window.location.protocol === 'https:' && API_BASE_URL.startsWith('http:')) {
-  API_BASE_URL = API_BASE_URL.replace('http:', 'https:');
-  console.warn('Forced HTTPS for API URL:', API_BASE_URL);
-}
-
-// SOLUCIÓN AGRESIVA: Forzar HTTPS sin importar las variables de entorno
-if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
-  API_BASE_URL = 'https://guruinversor-v1-production.up.railway.app';
-  console.warn('OVERRIDE: Forced HTTPS URL in production:', API_BASE_URL);
-}
-
-// Debug para verificar la URL en producción
-console.log('API_BASE_URL:', API_BASE_URL);
+// Debug para verificar
+console.log('HARDCODED API_BASE_URL:', API_BASE_URL);
 console.log('Environment MODE:', import.meta.env.MODE);
-console.log('VITE_API_URL from env:', import.meta.env.VITE_API_URL);
-console.log('Is Production:', import.meta.env.PROD);
 console.log('Window protocol:', typeof window !== 'undefined' ? window.location.protocol : 'server');
 
 // Configuración base de Axios (DESPUÉS de la corrección)
@@ -52,20 +34,13 @@ const api = axios.create({
 // Debug adicional para verificar la instancia de Axios
 console.log('Axios baseURL configurado:', api.defaults.baseURL);
 
-// Interceptor CRÍTICO: Forzar HTTPS en todas las peticiones
+// Interceptor simplificado para auth y debugging
 api.interceptors.request.use(
-  (config) => {
-    // Forzar HTTPS si estamos en una página HTTPS
-    if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
-      if (config.baseURL && config.baseURL.startsWith('http:')) {
-        config.baseURL = config.baseURL.replace('http:', 'https:');
-        console.warn('INTERCEPTOR: Converted baseURL to HTTPS:', config.baseURL);
-      }
-      if (config.url && config.url.startsWith('http:')) {
-        config.url = config.url.replace('http:', 'https:');
-        console.warn('INTERCEPTOR: Converted URL to HTTPS:', config.url);
-      }
-    }
+  (config) => {    console.log('REQUEST intercepted:', {
+      url: config.url,
+      baseURL: config.baseURL,
+      fullURL: (config.baseURL || '') + (config.url || '')
+    });
     
     // Token de autenticación
     const token = localStorage.getItem('authToken');
