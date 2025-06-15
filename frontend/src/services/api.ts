@@ -27,6 +27,12 @@ if (typeof window !== 'undefined' && window.location.protocol === 'https:' && AP
   console.warn('Forced HTTPS for API URL:', API_BASE_URL);
 }
 
+// SOLUCIÓN AGRESIVA: Forzar HTTPS sin importar las variables de entorno
+if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
+  API_BASE_URL = 'https://guruinversor-v1-production.up.railway.app';
+  console.warn('OVERRIDE: Forced HTTPS URL in production:', API_BASE_URL);
+}
+
 // Debug para verificar la URL en producción
 console.log('API_BASE_URL:', API_BASE_URL);
 console.log('Environment MODE:', import.meta.env.MODE);
@@ -46,9 +52,22 @@ const api = axios.create({
 // Debug adicional para verificar la instancia de Axios
 console.log('Axios baseURL configurado:', api.defaults.baseURL);
 
-// Interceptor para añadir token de autenticación
+// Interceptor CRÍTICO: Forzar HTTPS en todas las peticiones
 api.interceptors.request.use(
   (config) => {
+    // Forzar HTTPS si estamos en una página HTTPS
+    if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
+      if (config.baseURL && config.baseURL.startsWith('http:')) {
+        config.baseURL = config.baseURL.replace('http:', 'https:');
+        console.warn('INTERCEPTOR: Converted baseURL to HTTPS:', config.baseURL);
+      }
+      if (config.url && config.url.startsWith('http:')) {
+        config.url = config.url.replace('http:', 'https:');
+        console.warn('INTERCEPTOR: Converted URL to HTTPS:', config.url);
+      }
+    }
+    
+    // Token de autenticación
     const token = localStorage.getItem('authToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
