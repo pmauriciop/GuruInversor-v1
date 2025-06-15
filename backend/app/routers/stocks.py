@@ -13,6 +13,7 @@ from datetime import datetime, timedelta
 from typing import List, Optional, Dict, Any
 from fastapi import APIRouter, HTTPException, Query, Path as PathParam
 from pydantic import BaseModel, Field
+from sqlalchemy import text
 import numpy as np
 
 # Agregar path del backend
@@ -245,20 +246,67 @@ async def get_stock_history(
                 else:
                     end_date_obj = datetime.now().date()
                     start_date_obj = end_date_obj - timedelta(days=days)
-                
-                # Obtener datos históricos desde la base de datos
-                historical_records = session.query(HistoricalData).filter(
-                    HistoricalData.stock_id == stock.id,
-                    HistoricalData.date >= start_date_obj,
-                    HistoricalData.date <= end_date_obj                ).order_by(HistoricalData.date.asc()).all()
+                  # Obtener datos históricos desde la base de datos
+                # Usar consulta SQL directa para manejar tipos en PostgreSQL
+                if db.db_type == "postgresql":
+                    # Para PostgreSQL, hacer cast explícito del campo date
+                    historical_records = session.execute(text("""
+                        SELECT h.* FROM historical_data h
+                        WHERE h.stock_id = :stock_id 
+                        AND CAST(h.date AS DATE) >= :start_date 
+                        AND CAST(h.date AS DATE) <= :end_date
+                        ORDER BY CAST(h.date AS DATE) ASC
+                    """), {
+                        'stock_id': stock.id,
+                        'start_date': start_date_obj,
+                        'end_date': end_date_obj
+                    }).fetchall()
+                    
+                    # Convertir resultados a objetos HistoricalData simulados
+                    historical_data_list = []
+                    for row in historical_records:
+                        # Crear objeto con los datos de la fila
+                        class HistoricalRecord:
+                            def __init__(self, row):
+                                self.id = row[0] if hasattr(row, '__getitem__') else row.id
+                                self.stock_id = row[1] if hasattr(row, '__getitem__') else row.stock_id
+                                self.date = row[2] if hasattr(row, '__getitem__') else row.date
+                                self.open = row[3] if hasattr(row, '__getitem__') else row.open
+                                self.high = row[4] if hasattr(row, '__getitem__') else row.high
+                                self.low = row[5] if hasattr(row, '__getitem__') else row.low
+                                self.close = row[6] if hasattr(row, '__getitem__') else row.close
+                                self.volume = row[7] if hasattr(row, '__getitem__') else row.volume
+                                self.adj_close = row[8] if hasattr(row, '__getitem__') else row.adj_close
+                        
+                        historical_data_list.append(HistoricalRecord(row))
+                    
+                    historical_records = historical_data_list
+                else:                    # Para SQLite, usar consulta normal de SQLAlchemy
+                    historical_records = session.query(HistoricalData).filter(
+                        HistoricalData.stock_id == stock.id,
+                        HistoricalData.date >= start_date_obj,
+                        HistoricalData.date <= end_date_obj
+                    ).order_by(HistoricalData.date.asc()).all()
                 
                 if historical_records:
                     # Convertir datos de la BD al formato de respuesta
                     stock_data_list = []
                     for record in historical_records:
+                        # Manejar formato de fecha para ambos tipos de consulta
+                        if isinstance(record.date, str):
+                            # Si es string (desde PostgreSQL), convertir a fecha
+                            try:
+                                date_obj = datetime.strptime(record.date, '%Y-%m-%d').date()
+                                date_str = date_obj.strftime('%Y-%m-%d')
+                            except:
+                                date_str = record.date
+                        else:
+                            # Si es date object (desde SQLite o SQLAlchemy)
+                            date_str = record.date.strftime('%Y-%m-%d')
+                        
                         stock_data = StockData(
                             ticker=ticker_upper,
-                            date=record.date.strftime('%Y-%m-%d'),
+                            date=date_str,
                             open=float(record.open),
                             high=float(record.high),
                             low=float(record.low),
