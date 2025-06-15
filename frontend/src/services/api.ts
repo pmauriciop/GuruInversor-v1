@@ -15,12 +15,24 @@ import type {
 } from '../types/api';
 
 // API Configuration
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://guruinversor-v1-production.up.railway.app';
+// Forzar HTTPS en producción para resolver Mixed Content
+let API_BASE_URL = import.meta.env.VITE_API_URL || 
+  (import.meta.env.MODE === 'production' 
+    ? 'https://guruinversor-v1-production.up.railway.app'
+    : 'http://localhost:8000');
+
+// Forzar HTTPS si estamos en producción (fallback adicional)
+if (window.location.protocol === 'https:' && API_BASE_URL.startsWith('http:')) {
+  API_BASE_URL = API_BASE_URL.replace('http:', 'https:');
+  console.warn('Forced HTTPS for API URL:', API_BASE_URL);
+}
 
 // Debug para verificar la URL en producción
 console.log('API_BASE_URL:', API_BASE_URL);
-console.log('Environment:', import.meta.env.MODE);
+console.log('Environment MODE:', import.meta.env.MODE);
 console.log('VITE_API_URL from env:', import.meta.env.VITE_API_URL);
+console.log('Is Production:', import.meta.env.PROD);
+console.log('Window protocol:', window.location.protocol);
 
 // Configuración base de Axios
 const api = axios.create({
